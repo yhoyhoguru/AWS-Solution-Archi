@@ -1,0 +1,41 @@
+   3  cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
+EOF
+
+    4  sudo modprobe overlay
+    5  sudo modprobe br_netfilter
+    6  cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+    7  sudo sysctl --system
+    8  sudo apt-get update && sudo apt-get install -y containerd.io
+    9  sudo mkdir -p /etc/containerd
+   10  sudo containerd config default | sudo tee /etc/containerd/config.toml
+   11  sudo systemctl restart containerd
+   12  sudo systemctl status containerd
+   13  sudo swapoff -a
+   14  sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+   15  curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.27/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+   16  cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.27/deb/ /
+EOF
+
+   17  sudo apt-get update
+   18  sudo apt-get install -y kubelet kubeadm kubectl
+   19  sudo apt-mark hold kubelet kubeadm kubectl
+   20  kubeadm join 10.0.1.101:6443 --token aocs81.ezgpla2pazdyms94 --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444d36c2
+34f5d3b
+   21  kubeadm join 10.0.1.101:6443 --token aocs81.ezgpla2pazdyms94 --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444d36c2
+34f5d3b --ignore-preflight-errors=...
+   22  kubeadm join 10.0.1.101:6443 --token aocs81.ezgpla2pazdyms94 --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444d36c2
+34f5d3b '--ignore-preflight-errors=...'
+   23  sudo kubeadm join 10.0.1.101:6443 --token aocs81.ezgpla2pazdyms94 --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444
+d36c234f5d3b '--ignore-preflight-errors=...'
+   24  sudo kubeadm join 10.0.1.101:6443 --token 4dpl1c.32uf21vn102v2ghc --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444
+d36c234f5d3b
+   25  829f0a2af513d7b8
+   26  sudo kubeadm join 10.0.1.101:6443 --token 4dpl1c.32uf21vn102v2ghc --discovery-token-ca-cert-hash sha256:664a28247484ba9dc4916d87de707e2de444d36c234f5d3b829f0a2af513d7b8

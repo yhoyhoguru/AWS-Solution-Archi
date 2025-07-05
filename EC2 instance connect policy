@@ -1,4 +1,3 @@
-
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -7,14 +6,13 @@
       "Action": [
         "ec2:DescribeInstances",
         "ec2:CreateInstanceConnectEndpoint",
-        
-       
+        "ec2:DescribeInstanceConnectEndpoint",
+        "ec2:DescribeInstanceEvent",
         "ec2:ModifyInstanceAttribute",
         "ec2:DescribeSecurityGroups",
         "ec2:ModifySecurityGroupRules",
         "ec2:DescribeSecurityGroupRules",
-        
-        "ec2-instance-connect:SendSSHPublicKey"
+        "ec2:ConnectInstance"
       ],
       "Resource": "*"
     }

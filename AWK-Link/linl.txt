@@ -1,0 +1,13 @@
+https://eu-north-1.signin.aws.amazon.com/oauth?response_type=code&client_id=arn%3Aaws%3Asignin%3A%3A%3Aconsole%2Fcanvas&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3FhashArgs%3D%2523%26isauthcode%3Dtrue%26nc2%3Dh_ct%26src%3Dheader-signin%26state%3DhashArgsFromTB_eu-north-1_034d6f9ab46ee1fd&forceMobileLayout=0&forceMobileApp=0&code_challenge=_ugp2AmaK1QOTbz8bm70raEL_dFkXlu1VzQ0Vj9sG4w&code_challenge_method=SHA-256
+https://gist.github.com/abhishekghode/23be13a88ffaae0e075b4a933699826a
+https://killercoda.com/examples - AWS Lab
+https://portal.tutorialsdojo.com/playclouds-lab-collection/ - AWS LAB Session
+https://www.youtube.com/watch?v=kd33UVZhnAA&t=6s --> datacenter - youtube-link
+https://www.youtube.com/watch?v=sCR3SAVdyCc --> Load Blancer - youtube link
+https://www.pluralsight.com/individuals/pricing/cloud
+
+Docker & Kubernet
+
+https://www.etctree.com/
+https://docs.docker.com/reference/cli/docker/container/commit/
+https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/

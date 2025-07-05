@@ -1,0 +1,21 @@
+kubectl apply -f https://raw.githubusercontent.com/mysql/mysql-operator/trunk/deploy/deploy-crds.yaml
+kubectl apply -f https://raw.githubusercontent.com/mysql/mysql-operator/trunk/deploy/deploy-operator.yaml
+
+kubectl create secret generic mypwds \
+        --from-literal=rootUser=root \
+        --from-literal=rootHost=% \
+        --from-literal=rootPassword="sakila"
+        
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: mycluster
+spec:
+  secretName: mypwds
+  tlsUseSelfSigned: true
+  instances: 3
+  router:
+    instances: 1
+    
+ kubectl apply -f mycluster.yaml
+ kubectl get innodbcluster --watch

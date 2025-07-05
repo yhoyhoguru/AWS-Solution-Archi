@@ -1,0 +1,13 @@
+ 4  docker --version
+    5  sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+    6  sudo yum-config-manager --add-repo
+    7  sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    8  sudo yum -y install docker-ce
+    9  sudo systemctl enable --now docker
+   10  sudo usermod -aG docker cloud_user
+   11  docker --version
+   12  dcoker info
+   13  docker info   14  sudo systemctl daemon-reload
+   15  docker info
+   16  exit
+   17  docker info

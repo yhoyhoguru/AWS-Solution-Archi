@@ -1,0 +1,56 @@
+   2  nano trust_policy_ec2.json
+   
+   
+{
+  "Version": "2012-10-17",
+  "Statement": [
+  {
+    "Effect": "Allow",
+    "Principal": {"Service": "ec2.amazonaws.com"},
+    "Action": "sts:AssumeRole"
+  }
+  ]
+}
+   
+    3  aws iam create-role --role-name DEV_ROLE --assume-role-policy-document file://trust_policy_ec2.json
+    4  nano dev_s3_read_access.json
+    
+ {
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+        "Sid": "AllowUserToSeeBucketListInTheConsole",
+        "Action": ["s3:ListAllMyBuckets", "s3:GetBucketLocation"],
+        "Effect": "Allow",
+        "Resource": ["arn:aws:s3:::*"]
+      },
+      {
+          "Effect": "Allow",
+          "Action": [
+              "s3:Get*",
+              "s3:List*"
+          ],
+          "Resource": [
+              "arn:aws:s3:::<DEV_S3_BUCKET_NAME>/*",
+              "arn:aws:s3:::<DEV_S3_BUCKET_NAME>"
+          ]
+      }
+  ]
+}
+    
+    
+    5  aws iam create-policy --policy-name DevS3ReadAccess --policy-document file://dev_s3_read_access.json
+    6  aws iam attach-role-policy --role-name DEV_ROLE --policy-arn "arn:aws:iam::233310358933:policy/DevS3ReadAccess
+"
+    7  aws iam create-instance-profile --instance-profile-name DEV_PROFILE
+    8  aws iam add-role-to-instance-profile --instance-profile-name DEV_PROFILE --role-name DEV_ROLE
+    9  aws iam get-instance-profile --instance-profile-name DEV_PROFILE
+   10  aws ec2 associate-iam-instance-profile --instance-id i-0d5bfe59851de3b88  --iam-instance-profile Name="DEV_PRO
+FILE"
+   11  aws ec2 describe-instances --instance-ids i-0d5bfe59851de3b88
+   
+   #On web server
+   
+   aws sts get-caller-identity
+   aws s3 ls
+   

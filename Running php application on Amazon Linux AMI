@@ -1,0 +1,18 @@
+
+   1  apt get update #This will not work on Amazon linux
+   
+    2  sudo yum update -y
+    3  sudo yum install -y httpd php
+    4  sudo service httpd start
+    5  sudo service httpd status
+    6  sudo chkconfig httpd on
+    7  sudo usermod -a -G apache ec2-user
+    8  ls /var/www/
+    9  ls -ld /var/www/
+   10  sudo chown -R ec2-user:apache /var/www/ 
+   11  ls -ld /var/www/
+   12  ls -ll /var/www/
+   13  ls -ll /var/www/html/
+   14  echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+   15  cat /var/www/html/phpinfo.php
+   16  curl localhost/phpinfo.php

@@ -1,0 +1,16 @@
+kubectl get nodes
+
+// yaml files are available in https://github.com/ACloudGuru-Resources/Course_EKS-Basics
+
+nano ngnix-deployment.yaml
+kubectl apply -f ngnix-deployment.yaml
+kubectl get deploy
+kubectl get pods
+
+nano ngnix-deployment.yaml
+nano ngnix-svc.yaml
+kubectl apply -f ngnix-svc.yaml
+kubectl get svc
+kubectl port-forward service/nginx-svc 80:80
+
+curl localhost <test it in a new session on terminal>

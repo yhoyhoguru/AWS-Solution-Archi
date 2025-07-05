@@ -1,0 +1,305 @@
+//Deploy Spring boot application in EKS cluster
+
+Kubernetes cluster can be created either using kubeadm or you can have managed cluster using EKS
+
+0. Get the codebase
+
+cd ~
+mkdir repos
+cd repos
+git clone https://github.com/Arkhypov/Spring-boot-app-Shipwreck.git
+cd Spring-boot-app-Shipwreck
+
+Add below entry in pom.xml using nano editor
+
+<properties>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+</properties>
+
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.49</version>  // you may have to update version only
+</dependency>
+
+
+*/
+
+Add below entry in src/main/resources/application.properties
+
+/*
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5Dialect
+spring.jpa.hibernate.ddl-auto=create
+
+*/
+
+sudo apt-get install mysql-client
+
+1. Create Dockefile for Spring boot application [we worked on nginx earlier]
+
+/* Dockerfie for your reference
+
+# Build stage
+FROM maven:3.6.3-jdk-8-slim AS build
+COPY src /home/app/src
+COPY pom.xml /home/app
+RUN mvn -f /home/app/pom.xml clean install -DskipTests
+
+# Package stage
+FROM openjdk:8-jdk-alpine
+COPY --from=build /home/app/target/*.jar app.jar
+EXPOSE 8181
+ENV SPRING_PROFILES_ACTIVE=prod
+ENTRYPOINT ["java","-jar","app.jar","--spring.profiles.active=prod"]
+
+*/
+
+2. Build Docker image for spring boot application
+
+docker build -t shipwreckapp .
+
+//Optional to push image into docker registry
+
+docker tag shipwreckapp:latest <user-name-on-docker-hub>/test:latest
+docker login
+docker push biradarakshay/test:lates
+
+
+docker pull mysql:8.0.41-debian
+
+
+docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=shipwreck mysql:8.0.41-debian
+
+mysql -P 3306 --protocol tcp -u root -p
+
+//Update scr/main/resources/application.properties for mysql url
+docker run -p 8181:8181 --network host shipwreckapp
+
+//add --netwrok host flag in docker run to access mysql in spring boot app
+/*
+Docker installation on ubuntu
+
+cd ~
+sudo apt update
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+apt-cache policy docker-ce
+sudo apt install docker-ce
+sudo systemctl status docker
+sudo usermod -aG docker ${USER}
+exit // you will eit from ssh session
+//ssh into your ubuntu VM again
+
+groups
+docker info 
+
+*/
+
+
+
+
+
+
+
+3. Push Docker image into Elastic container registry [alternative is to push it to docker hub]
+
+   a. Create an IAM user with administrator access
+   
+   b. Install AWS CLI on ubuntu EC2 instance
+
+   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+   unzip awscliv2.zip
+   sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/bin/aws-cli --update
+   aws --version
+   
+   c. Configure AWS CLI with newly created IAM user
+   
+   aws configure
+
+   d. Commands to push docker image in ECR
+
+4. Create deployment and service yaml files
+5. Provision a cluster on EKS
+   
+   
+   a. Install kubectl
+   
+   curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/kubectl
+   chmod +x ./kubectl
+   mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+   kubectl version --short --client
+   
+   b. Install ekctl
+   
+   curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+   sudo mv /tmp/eksctl /usr/bin
+   eksctl version
+   
+   c. Provision EKS cluster
+   
+   eksctl create cluster --name dev --region us-east-1 --nodegroup-name standard-workers --node-type t3.medium --nodes 3 --nodes-min 1 --nodes-max 4 --managed
+   eksctl get cluster
+   aws eks update-kubeconfig --name dev --region us-east-1
+   kubectl config get-contexts
+
+   // When you want to delete a cluster 
+   eksctl delete cluster --region=us-east-1 --name=dev
+
+IAM policy for reading EKS cluster
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeCluster",
+        "eks:ListClusters"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+
+Deploy mysql on kubernetes
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+kubectl apply -f https://k8s.io/examples/application/mysql/mysql-pv.yaml
+kubectl apply -f https://k8s.io/examples/application/mysql/mysql-deployment.yaml
+
+kubectl describe deployment mysql
+kubectl get pods -l app=mysql
+kubectl describe pvc mysql-pv-claim
+
+kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mysql -ppassword
+
+
+
+6. Deploy spring boot applition using yaml files
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipwrackbhavin-deployment
+  labels:
+    app: shipwrackbhavin
+    env: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: shipwrackbhavin
+      env: dev
+  template:
+    metadata:
+      labels:
+        app: shipwrackbhavin
+        env: dev
+    spec:
+      containers:
+      - name: shipwrackbhavin-container
+        image: selvichandrasekaran/shipwreck:latest
+        ports:
+        - containerPort: 8181
+        
+        
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipwrackbhavin-service
+  labels:
+    app: shipwrackbhavin
+    env: dev
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8181
+      name: http
+  selector:
+      app: shipwrackbhavin
+      env: dev
+      
+kubectl exec --stdin --tty mysql-74f8bf98c5-bl8vv -- /bin/bash
+ 
+kubectl port-forward pod/mypod 80:8181

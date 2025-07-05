@@ -1,0 +1,101 @@
+//For youtube link
+
+https://www.youtube.com/watch?v=mxKpAxtefbc&list=PLJcaPjxegjBWWtJHeKzGTTa5JF4UrO2o_
+
+
+
+/*
+Unable to perform sudo apt-get update from EC2 instance
+Resolution: had the same issue and To solve it I had to add another outbound rule to All traffic and set the destination to anywhere.
+*/
+
+
+
+//Create an EC2 instance
+
+//SSH into EC2 instance
+ssh -i <pem-file> ubuntu@<public-ip>
+//Install JDK, Maven and MySQL clien
+
+sudo apt update
+//sudo apt install openjdk-17-jdk -y
+sudo apt install openjdk-8-jdk -y
+
+sudo update-alternatives --config javac
+sudo update-alternatives --config java
+java --version
+sudo apt install maven -y
+mvn --version
+
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt install mysql-server
+sudo service mysql status
+sudo ss -tap | grep mysql
+
+sudo service mysql restart
+//https://ubuntu.com/server/docs/install-and-configure-a-mysql-server
+
+
+sudo apt-get install mysql-client
+mysql --version
+
+sudo mysql_secure_installation
+sudo mysql
+//mysql> ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your-password';
+
+CREATE USER 'myuser'@'localhost' IDENTIFIED BY 'mypass';
+CREATE USER 'myuser'@'%' IDENTIFIED BY 'mypass';
+
+GRANT ALL ON *.* TO 'myuser'@'localhost';
+GRANT ALL ON *.* TO 'myuser'@'%';
+FLUSH PRIVILEGES;
+
+mysql -h localhost -u root -p
+mysql> CREATE DATABASE shipwreck;
+
+//Clone below github repository
+
+cd ~
+mkdir repos
+cd repos
+git clone https://github.com/Arkhypov/Spring-boot-app-Shipwreck.git
+cd Spring-boot-app-Shipwreck
+
+/*
+
+Add below entry in pom.xml using nano editor
+
+<properties>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+</properties>
+
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.49</version>  // you may have to update version only
+</dependency>
+
+
+*/
+
+Add below entry in src/main/resources/application.properties
+
+/*
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5Dialect
+spring.jpa.hibernate.ddl-auto=create
+
+*/
+
+
+mvn clean install -DskipTests
+mvn spring-boot:run //App is running on http://localhost:8181/index.html#/
+
+
+//User data for launch template
+#!/bin/bash
+cd /home/ubuntu/repos/Spring-boot-app-Shipwreck
+mvn clean install -DskipTests
+mvn spring-boot:run
